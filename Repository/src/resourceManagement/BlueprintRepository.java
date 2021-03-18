@@ -4,14 +4,10 @@ import blueprints.Blueprint;
 import components.NamesLoader;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import utils.FileUtils;
 import utils.MyFile;
@@ -218,19 +214,8 @@ public class BlueprintRepository {
 	
 	private static void loadCustomBlueprint(File file, String name) {
 		int id = Integer.parseInt(name.split("_")[0]);
-		
-		try {
-			JarFile jar = new JarFile(file);
-			
-			for (JarEntry entry : Collections.list(jar.entries())) if (entry.getName().startsWith(name)) {
-				MyFile blueprintFile = new MyFile(entry, name + ".txt");
-				Blueprint blueprint = Blueprint.load(id, blueprintFile, false);
-				blueprints.put(Integer.valueOf(id), blueprint);
-			}
-			
-			jar.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		MyFile blueprintFile = new MyFile(file, name + ".txt");
+		Blueprint blueprint = Blueprint.load(id, blueprintFile, false);
+		blueprints.put(Integer.valueOf(id), blueprint);
 	}
 }

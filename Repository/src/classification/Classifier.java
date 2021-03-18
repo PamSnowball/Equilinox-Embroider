@@ -1,26 +1,35 @@
 package classification;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import languages.GameText;
 
 public class Classifier {
+	private static boolean hasNode = false;
+	
+	private static Classification node = null;
+	
 	protected static final Classification ALL_SPECIES = setUpClassificationHierarchy();
-  
+	
 	public static Classification getClassification(String key) {
 		return ALL_SPECIES.getClassification(key);
 	}
-  
+	
 	public static Classification getAllClassification() {
 		return ALL_SPECIES;
 	}
-  
+	
 	public static Classification getPlantClassification() {
 		return ALL_SPECIES.getClassification("p");
 	}
-  
+	
 	public static Classification getAnimalClassification() {
 		return ALL_SPECIES.getClassification("a");
 	}
-  
+	
+	public static List<String> customClassifications = new ArrayList<>();
+	
 	@SuppressWarnings("unused")
 	private static Classification setUpClassificationHierarchy() {
 		Classification allSpecies = Classification.createHeadNode();
@@ -77,6 +86,51 @@ public class Classifier {
 		Classification largeHerbivores = herbivore.createChild('l', GameText.getText(854));
 		Classification mediumHerbivores = herbivore.createChild('m', GameText.getText(855));
 		Classification smallHerbivores = herbivore.createChild('s', GameText.getText(856));
+		loadCustomClassifications(allSpecies);
+		
 		return allSpecies;
+	}
+	
+	static void loadCustomClassifications(Classification allSpecies) {
+		for (String customClassification : customClassifications) {
+			String[] classifications = customClassification.split(";");
+			
+			char[] classification = classifications[0].replaceAll("[^a-zA-Z]", "").toCharArray();
+			String text = classifications[1];
+			
+			if (classification != null && text != null) {
+				loadComparable(classification, text, allSpecies);
+			}
+			
+			hasNode = false;
+		}
+	}
+	
+	private static void loadComparable(char[] classification, String text, Classification allSpecies) {
+		int i = classification.length;
+		
+		compareChildren(allSpecies, classification[0], 0); i--;
+		
+		if (hasNode && i > 0) {
+			hasNode = false;
+			compareChildren(node, classification[1], 1); i--;
+			
+			if (!hasNode && i == 0) node.createChild(classification[1], text);
+			if (hasNode && i > 0) {
+				hasNode = false;
+				compareChildren(node, classification[2], 2); i--;
+				
+				if (!hasNode && i == 0) node.createChild(classification[2], text);
+			}
+		} else if (!hasNode && i == 0) {
+			allSpecies.createChild(classification[0], text);
+		}
+	}
+
+	static void compareChildren(Classification classification, char comparable, int i) {
+		for (Classification c : classification.getChildren()) if (c.getKey().charAt(i) == comparable) {
+			hasNode = true;
+			node = c;
+		}
 	}
 }

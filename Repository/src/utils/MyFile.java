@@ -2,32 +2,26 @@ package utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.jar.JarEntry;
 
 public class MyFile {
-	private InputStream input = null;
-	
+	private InputStream stream;
+	private boolean custom;
 	private String path;
-	
 	private String name;
 	
 	private String separate(String path) {
 		return '/' + path;
 	}
 	
-	private String getClassPath(Class<?> clazz) {
-		return new File(clazz.getProtectionDomain().getCodeSource().getLocation().getPath()).getAbsolutePath();
-	}
-	
-	public MyFile(JarEntry entry, String path) {
-		this.path = getClassPath(entry.getClass()) + "/res/entities/" + path;
-		
-		this.name = entry.getName();
-		
-		this.input = entry.getClass().getResourceAsStream("/res/entities/" + path);
+	public MyFile(File file, String path) {
+		this.path = file.getPath() + separate(path);
+		this.name = new File(this.path).getName();
+		this.custom = true;
 	}
 	
 	public MyFile(String path) {
@@ -59,6 +53,11 @@ public class MyFile {
 		for (String subFile : subFiles) this.path = String.valueOf(this.path) + separate(subFile);
 	}
 	
+	public MyFile(InputStream stream, String name) {
+		this.stream = stream;
+		this.name = name;
+	}
+
 	public String getPath() {
 		return this.path;
 	}
@@ -68,11 +67,17 @@ public class MyFile {
 	}
 	
 	public InputStream getInputStream() {
-		if (input != null) {
-			return input;
-		} else {
-			return getClass().getResourceAsStream(this.path);
+		if (custom) { 
+			try { 
+				return new FileInputStream(path);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		} else if (stream != null) {
+			return stream;
 		}
+		
+		return getClass().getResourceAsStream(this.path);
 	}
 	
 	public URL getUrl() {

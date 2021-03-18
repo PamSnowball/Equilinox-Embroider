@@ -13,6 +13,7 @@ import java.util.List;
 import mainGuis.EquilinoxGuis;
 import mainGuis.GuiRepository;
 import shops.ShopItem;
+import snowball.embroider.ModelConverter;
 import snowball.mod.ModLoader;
 import toolbox.MyKeyboard;
 import toolbox.OpenGlError;
@@ -27,6 +28,9 @@ public class MainApp {
 	public static IconRenderer i;
   
 	public static void main(String[] args) {
+		ModLoader.load();
+		ModelConverter.main(args);
+		
 		ErrorManager.init(new File("EquilinoxErrorLogs"), "An error has caused the program to crash, sorry for the inconvenience! Please email the dev at thinmatrix@gmail.com and copy-paste the error message below:");
 		EngineMaster.init(Camera.getCamera());
 		FirstScreenUi screen = new FirstScreenUi();
@@ -37,8 +41,6 @@ public class MainApp {
 			MasterRenderer.renderGuis();
 			EngineMaster.update();
 		}
-		
-		ModLoader.load();
 		
 		GameManager.init();
 		TemporaryPlacement.doTemporaryLoadingOfResources();

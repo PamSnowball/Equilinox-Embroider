@@ -21,15 +21,11 @@ public class ModLoader {
 
 	public static final List<File> modJars = new ArrayList<>();
 	
-	private static String gameJar;
-	
 	private static boolean isMod = false;
 	
 	public static void load() {
 		loadMods();
 		initializeMods();
-		
-		launchEquilinox();
 	}
 	
 	private static void loadMods() {
@@ -68,7 +64,7 @@ public class ModLoader {
 			
 			if (clazz.getSuperclass().equals(Mod.class)) {
 				Mod mod = createInstance(clazz);
-		
+				
 				isMod = true;
 				
 				if (mod != null) {
@@ -81,7 +77,8 @@ public class ModLoader {
 			}
 		}
 	}
-
+	
+	//Mods must have a zero args constructor
 	private static Mod createInstance(Class<?> clazz) throws InstantiationException, IllegalAccessException, InvocationTargetException {
 		for (Constructor<?> constructor : clazz.getConstructors()) {
 			if (constructor.getParameterCount() == 0) {
@@ -96,45 +93,9 @@ public class ModLoader {
 	
 	private static void initializeMods() {
 		if (Utils.directory != null) {
-			String gameDir = Utils.directory.getPath();
-		
-			File game = new File(gameDir + '/' + gameJar);
-			File mods = new File(gameDir + "/mods");
-		
-			PreInitializer preInit = new PreInitializer(Utils.directory, game, mods, loadedMods);
-		
+			PreInitializer preInit = new PreInitializer(loadedMods);
+			
 			loadedMods.forEach(mod -> mod.preInitializer(preInit));
 		}
-	}
-	
-	private static void launchEquilinox() {
-		try {
-			Process process = new ProcessBuilder( 
-					new String[] {
-							checkForJava(), "-jar", Utils.gameJar, "-classpath",
-							System.getProperty("java.class.path"), "-EmlDebug", "Xms2G", "Xmx4G"
-					}
-			).inheritIO().start();
-			
-			int exitCode = process.waitFor();
-			System.exit(exitCode);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	private static String checkForJava() {
-		String path = Utils.directory.getPath();
-		
-		File[] files = new File[3];
-		
-		files[0] = new File(path + "/jreWindows32/bin/java");
-		files[1] = new File(path + "/jre/bin/java");
-		files[2] = new File(path + "/PlugIns/OracleJdkMac.jdk/Contents/Home/bin/java");
-		
-		for (File file : files) if (file.exists()) return file.getPath();
-		
-		return null;
 	}
 }

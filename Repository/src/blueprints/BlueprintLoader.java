@@ -13,83 +13,83 @@ import utils.MyFile;
 
 public class BlueprintLoader {
 	public static void loadBlueprint(Blueprint blueprint, MyFile blueprintFile) throws Exception {
-	    CSVReader reader = new CSVReader(blueprintFile);
-	    reader.nextLine();
-	    float size = reader.getNextFloat();
-	    String extraName = loadOverrideName(reader);
-	    Integer overrideIndex = loadOverrideModelIndex(reader);
-	    boolean randomize = loadPotentialBoolean(reader);
-	    boolean alwaysVis = loadPotentialBoolean(reader);
-	    loadIconInfo(reader, blueprint);
-	    blueprint.alwaysVisible = alwaysVis;
-	    loadBlueprintInfo(blueprint, reader);
-	    String possibleName = loadCustomInfo(reader);
-	    if (possibleName != null) extraName = possibleName;
-	    reader.nextLine();
-	    int subBlueprintCount = reader.getNextInt();
-	    List<SubBlueprint> subBlueprints = new ArrayList<>();
-	    for (int i = 0; i < subBlueprintCount; i++) loadSubBlueprint(reader, subBlueprints, size); 
-	    calculateGrowthFactors(subBlueprints);
-	    blueprint.setSubBlueprints(subBlueprints);
-	    blueprint.setOverrideName(extraName);
-	    blueprint.setRandomizeModelStages(randomize);
-	    blueprint.setOverrideMainSubBlueprintIndex(overrideIndex);
-	    loadComponents(blueprint, reader);
-	    blueprint.indicateLoaded();
-	    reader.close();
+		CSVReader reader = new CSVReader(blueprintFile);
+		reader.nextLine();
+		float size = reader.getNextFloat();
+		String extraName = loadOverrideName(reader);
+		Integer overrideIndex = loadOverrideModelIndex(reader);
+		boolean randomize = loadPotentialBoolean(reader);
+		boolean alwaysVis = loadPotentialBoolean(reader);
+		loadIconInfo(reader, blueprint);
+		blueprint.alwaysVisible = alwaysVis;
+		loadBlueprintInfo(blueprint, reader);
+		String possibleName = loadCustomInfo(reader);
+		if (possibleName != null) extraName = possibleName;
+		reader.nextLine();
+		int subBlueprintCount = reader.getNextInt();
+		List<SubBlueprint> subBlueprints = new ArrayList<>();
+		for (int i = 0; i < subBlueprintCount; i++) loadSubBlueprint(reader, subBlueprints, size); 
+		calculateGrowthFactors(subBlueprints);
+		blueprint.setSubBlueprints(subBlueprints);
+		blueprint.setOverrideName(extraName);
+		blueprint.setRandomizeModelStages(randomize);
+		blueprint.setOverrideMainSubBlueprintIndex(overrideIndex);
+		loadComponents(blueprint, reader);
+		blueprint.indicateLoaded();
+		reader.close();
 	}
   
 	private static String loadCustomInfo(CSVReader reader) {
-		if (!reader.isEndOfLine()) reader.getNextLabelString();
+		if (!reader.isEndOfLine()) return reader.getNextLabelString();
 		return null;
 	}
 
 	private static void loadSubBlueprint(CSVReader reader, List<SubBlueprint> subBlueprints, float size) {
-	    reader.nextLine();
-	    
-	    Vector3f mins = reader.getNextVector();
-	    mins.scale(size);
-	    
-	    Vector3f maxs = reader.getNextVector();
-	    maxs.scale(size);
-	    
-	    float increaseFactor = reader.getNextFloat();
-	    
-	    boolean additive = false;
-	    
-	    AABB[] extraAabbs = null;
-	    
-	    if (!reader.isEndOfLine()) {
-	    	additive = reader.getNextBool();
-	    	extraAabbs = loadExtraAabbs(reader, size);
-	    }
-	    
-	    float[] modelData = ModelLoader.loadModel(reader, size);
+		reader.nextLine();
+		
+		Vector3f mins = reader.getNextVector();
+		mins.scale(size);
+		
+		Vector3f maxs = reader.getNextVector();
+		maxs.scale(size);
+		
+		float increaseFactor = reader.getNextFloat();
+		
+		boolean additive = false;
+		
+		AABB[] extraAabbs = null;
+		
+		if (!reader.isEndOfLine()) {
+			additive = reader.getNextBool();
+			extraAabbs = loadExtraAabbs(reader, size);
+		}
+		
+		float[] modelData = ModelLoader.loadModel(reader, size);
 	
-	    if (additive) {
-	    	SubBlueprint base = subBlueprints.get(subBlueprints.size() - 1);
-	    	subBlueprints.add(new AdditionSubBlueprint(base, modelData));
-	    } else {
-	      subBlueprints.add(new SubBlueprint(modelData, new AABB(mins, maxs), extraAabbs, increaseFactor));
-	    } 
+		if (additive) {
+			SubBlueprint base = subBlueprints.get(subBlueprints.size() - 1);
+			subBlueprints.add(new AdditionSubBlueprint(base, modelData));
+		} else {
+			subBlueprints.add(new SubBlueprint(modelData, new AABB(mins, maxs), extraAabbs, increaseFactor));
+		} 
 	}
   
 	private static AABB[] loadExtraAabbs(CSVReader reader, float size) {
-	    if (reader.isEndOfLine()) return new AABB[] {};
-	    
-	    int count = reader.getNextLabelInt();
-	    
-	    AABB[] aabbs = new AABB[count];
+		if (reader.isEndOfLine()) return new AABB[] {};
+		
+		int count = reader.getNextLabelInt();
+		
+		AABB[] aabbs = new AABB[count];
 	
-	    for (int i = 0; i < count; i++) {
-	    	Vector3f mins = reader.getNextVector();
-	    	mins.scale(size);
-	    	Vector3f maxs = reader.getNextVector();
-	    	maxs.scale(size);
-	    	aabbs[i] = new AABB(mins, maxs);
-	    }
-	    
-	    return aabbs;
+		for (int i = 0; i < count; i++) {
+			Vector3f mins = reader.getNextVector();
+			mins.scale(size);
+			Vector3f maxs = reader.getNextVector();
+			maxs.scale(size);
+			aabbs[i] = new AABB(mins, maxs);
+		}
+		
+		return aabbs;
 	}
   
 	private static String loadOverrideName(CSVReader reader) {
